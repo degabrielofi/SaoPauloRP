@@ -1,0 +1,32 @@
+[
+  {
+    "question": "Roleplay significa...?",
+    "options": [
+      "```Mata-Mata```",
+      "```Role com os Amigos```",
+      "```Simular a vida real```",
+      "```Simular a Fantasia```"
+    ],
+    "answer": 3
+  },
+  {
+    "question": "O que é RDM?",
+    "options": [
+      "```RDM é usada para quem abusou de bug.```",
+      "```RDM é atropelar alguém sem motivos.```",
+      "```RDM é matar alguém sem motivos.```",
+      "```RDM é sacar uma arma e ameaçar alguém.```"
+    ],
+    "answer": 3
+  },
+  {
+    "question": "O que é considerado anti RP?",
+    "options": [
+      "```Vender drogas em área safe```",
+      "```É você quebrar as regras do servidor.```",
+      "```É você cometer infrações de trânsito.```",
+      "```É você fazer rp de bandido.```"
+    ],
+    "answer": 2
+  }
+]

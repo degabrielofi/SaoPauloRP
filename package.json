@@ -4,18 +4,11 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "approximate-number": "^2.0.0",
-    "colors": "^1.4.0",
     "discord.js": "^13.15.0",
     "dotenv": "^16.4.5",
-    "fivem-node-api": "^0.1.1",
-    "fs": "^0.0.1-security",
     "moment": "^2.29.1",
-    "mysql": "^2.18.1",
     "nodemon": "^3.1.4",
-    "request": "^2.88.2",
-    "superagent": "^6.1.0",
-    "tcp-ping": "^0.1.1"
+    "fs": "^0.0.1-security"
   },
   "scripts": {
     "test": "node .",

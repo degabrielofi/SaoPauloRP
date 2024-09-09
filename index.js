@@ -1,4 +1,12 @@
-const { Client, Intents, Collection, MessageEmbed } = require("discord.js");
+const Discord = require("discord.js");
+const client = new Discord.Client({
+  intents: [
+    Discord.Intents.FLAGS.GUILDS,
+    Discord.Intents.FLAGS.GUILD_MESSAGES,
+    Discord.Intents.FLAGS.MESSAGE_CONTENT,
+    Discord.Intents.FLAGS.GUILD_MEMBERS,
+  ],
+});
 const fs = require("fs");
 const configJson = require("./config.json");
 
@@ -7,18 +15,8 @@ const config = {
   prefix: configJson.prefix,
 };
 
-// Definir intents apropriados
-const client = new Client({
-  intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_CONTENT, // Certifique-se de que seu bot tem permissão para ler o conteúdo das mensagens
-  ],
-});
+client.commands = new Discord.Collection();
 
-client.commands = new Collection();
-
-// Carregar os comandos
 const commandFiles = fs
   .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
@@ -32,34 +30,30 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.channel.type === "dm") return;
 
-  // Responder com prefixo
   if (
     message.content === `<@${client.user.id}>` ||
     message.content === `<@!${client.user.id}>`
   ) {
     return message.reply(
-      `<:DGzzIN:1214053375750963221> **|** Olá ${message.author}, Meu prefixo é \`${config.prefix}\`, veja meus comandos em d$help`
+      `<:DGzzIN:1214053375750963221> **|** Olá ${message.author}, Meu prefixo é \`${config.prefix}\`, veja meus comandos em ${configJson.prefix}help`
     );
   }
 
-  // Verificar se a mensagem começa com o prefixo
   if (!message.content.toLowerCase().startsWith(config.prefix.toLowerCase()))
     return;
 
-  // Separar o comando e argumentos
   const args = message.content.slice(config.prefix.length).trim().split(/ +/);
   const command = args.shift().toLowerCase();
 
-  // Executar o comando
   try {
     const commandFile = require(`./commands/${command}.js`);
     commandFile.run(client, message, args);
   } catch (err) {
     console.error("Erro ao executar o comando:", err);
 
-    const degabrielofierr = new MessageEmbed()
+    const degabrielofierr = new Discord.MessageEmbed()
       .setDescription(
-        `<a:Incorreto:1214051678089777212>**| Este comando não existe! Veja meus comandos existentes com d$help**`
+        `<a:Incorreto:1214051678089777212>**| Este comando não existe! Veja meus comandos existentes com ${configJson.prefix}help**`
       )
       .setFooter(`Requisitado por: ${message.author.tag}`)
       .setColor("RED");

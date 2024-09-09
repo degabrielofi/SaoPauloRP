@@ -1,163 +1,294 @@
-const { Client, Intents, MessageEmbed } = require("discord.js");
-const mysql = require("mysql");
+const { MessageEmbed } = require("discord.js");
+const fs = require("fs");
+const path = require("path");
 const {
-  ipservidor,
-  portaservidor,
-  conexaodb,
-  userdb,
-  senhadb,
-  db,
   canalwl,
   idcategoriawl,
-  idservidor,
   resultadowlstaff,
   resultadowlacertos,
   resultadowl_errados,
-  margemdeacertos,
   whitelistcargo,
   nonwhitelistcargo,
-} = require("../config.json"); // Usando suas configurações
-const colors = require("colors"); // Dependência para personalizar a saída no console
+} = require("../config.json");
 
-// Criando a conexão com o banco de dados MySQL
-const connection = mysql.createPool({
-  connectionLimit: 10,
-  host: conexaodb,
-  user: userdb,
-  password: senhadb,
-  database: db,
-});
+// Carrega as perguntas do arquivo JSON
+const questions = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../data/questions.json"), "utf-8")
+);
 
-module.exports = async (client, message, args) => {
-  if (message.channel.id !== canalwl) {
-    const embed = new MessageEmbed()
-      .setTitle("Canal Incorreto")
-      .setDescription(
-        `Você não pode usar este comando neste chat. Utilize: <#${canalwl}>`
-      )
-      .setColor("#ff0000")
-      .setFooter("Leia com atenção!");
-    return message.channel.send({ embeds: [embed] });
-  }
-
-  let existingChannel = message.guild.channels.cache.find(
-    (channel) => channel.name === `whitelist-${message.author.id}`
-  );
-  if (existingChannel) {
-    return message.channel.send(
-      "```fix\nVocê já possui uma whitelist em aberta!```"
-    );
-  }
-
-  // Criando o canal temporário para a whitelist
-  message.guild.channels
-    .create(`whitelist-${message.author.id}`, {
-      type: "GUILD_TEXT",
-      parent: idcategoriawl,
-      permissionOverwrites: [
-        {
-          id: message.guild.id,
-          deny: ["VIEW_CHANNEL"],
-        },
-        {
-          id: message.author.id,
-          allow: ["VIEW_CHANNEL", "SEND_MESSAGES", "READ_MESSAGE_HISTORY"],
-        },
-      ],
-    })
-    .then(async (channel) => {
+module.exports = {
+  name: "whitelist",
+  category: "everyone",
+  run: async (client, message, args) => {
+    if (message.channel.id !== canalwl) {
       const embed = new MessageEmbed()
-        .setTitle("Whitelist - Criada!")
+        .setTitle("Canal Incorreto")
         .setDescription(
-          `>**!\nCriei seu canal de Whitelist. Você tem 50 segundos a partir de **agora** em cada **pergunta.**\n\n**Canal**: ${channel}`
+          `Você não pode usar este comando neste chat. Utilize: <#${canalwl}>`
         )
-        .setColor("#2b961f")
-        .setThumbnail(
-          "https://cdn.discordapp.com/attachments/769023544931123210/806905164345901116/ALERTAANIMADO.gif"
-        )
-        .setFooter("Dragon - Avisos");
+        .setColor("#ff0000")
+        .setFooter({ text: "Leia com atenção!" });
+      return message.channel.send({ embeds: [embed] });
+    }
 
-      message.channel.send({ embeds: [embed] });
+    let existingChannel = message.guild.channels.cache.find(
+      (channel) => channel.name === `whitelist-${message.author.id}`
+    );
+    if (existingChannel) {
+      return message.channel.send(
+        "```fix\nVocê já possui uma whitelist em aberta!```"
+      );
+    }
 
-      // Coletor de mensagens para a Whitelist
-      const collector = channel.createMessageCollector({
-        time: 60000, // 1 minuto para responder a cada pergunta
-      });
+    // Criando o canal temporário para a whitelist
+    message.guild.channels
+      .create(`whitelist-${message.author.id}`, {
+        type: "GUILD_TEXT",
+        parent: idcategoriawl,
+        permissionOverwrites: [
+          {
+            id: message.guild.id,
+            deny: ["VIEW_CHANNEL"],
+          },
+          {
+            id: message.author.id,
+            allow: ["VIEW_CHANNEL", "SEND_MESSAGES", "READ_MESSAGE_HISTORY"],
+          },
+        ],
+      })
+      .then(async (channel) => {
+        const embed = new MessageEmbed()
+          .setTitle("Whitelist - Criada!")
+          .setDescription(
+            `>**!\nCriei seu canal de Whitelist. Você tem 50 segundos a partir de **agora** em cada **pergunta.**\n\n**Canal**: ${channel}`
+          )
+          .setColor("#2b961f")
+          .setThumbnail(
+            "https://cdn.discordapp.com/attachments/769023544931123210/806905164345901116/ALERTAANIMADO.gif"
+          )
+          .setFooter({
+            text: "DeGabrielDEV Store™",
+            iconURL: message.author.displayAvatarURL(),
+          })
+          .setTimestamp();
 
-      let questions = [
-        "1. Roleplay significa...? \n\n1️⃣ Mata-Mata\n\n2️⃣ Role com os Amigos\n\n3️⃣ Simular a vida real\n\n4️⃣ Simular a Fantasia",
-        "2. O que é RDM? \n\n1️⃣ RDM é usada para quem abusou de bug.\n\n2️⃣ RDM é atropelar alguém sem motivos.\n\n3️⃣ RDM é matar alguém sem motivos.\n\n4️⃣ RDM é sacar uma arma e ameaçar alguém.",
-        "3. O que é considerado anti RP? \n\n1️⃣ Vender drogas em área safe\n\n2️⃣ É você quebrar as regras do servidor.\n\n3️⃣ É você cometer infrações de trânsito.\n\n4️⃣ É você fazer rp de bandido.",
-        // Adicione mais perguntas conforme necessário
-      ];
+        message.channel.send({ embeds: [embed] }).then((msg) => {
+          try {
+            message.delete().catch(console.error);
+            setTimeout(() => msg.delete().catch(console.error), 5000);
+          } catch (err) {
+            console.error("Erro ao tentar deletar mensagens:", err);
+          }
+        });
 
-      let currentQuestion = 0;
-      let correctAnswers = 0;
-      let totalQuestions = questions.length;
+        const collector = channel.createMessageCollector({
+          time: 20000,
+        });
 
-      // Função para fazer perguntas
-      const askQuestion = () => {
-        if (currentQuestion < totalQuestions) {
-          channel.send(`**Pergunta:** ${questions[currentQuestion]}`);
-          currentQuestion++;
-        } else {
-          // Se todas as perguntas forem respondidas
-          endWhitelist(channel, correctAnswers);
-        }
-      };
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let totalQuestions = questions.length;
+        let userAnswers = [];
+        let answered = false;
 
-      collector.on("collect", (m) => {
-        if (m.author.bot) return;
-        // Verificação da resposta correta
-        if (m.content === "3") {
-          // Exemplo de resposta correta sendo a opção '3'
-          correctAnswers++;
-          channel.send("Resposta correta!");
-        } else {
-          channel.send("Resposta incorreta.");
-        }
-        askQuestion(); // Faz a próxima pergunta
-      });
+        const askQuestion = () => {
+          if (currentQuestion < totalQuestions) {
+            let questionObj = questions[currentQuestion];
+            let questionText = `**${currentQuestion + 1}. ${
+              questionObj.question
+            }**\n\n${questionObj.options
+              .map((opt, index) => `${index + 1}️⃣ ${opt}`)
+              .join("\n")}`;
+            channel.send(questionText);
+          } else {
+            endWhitelist(channel, correctAnswers);
+          }
+        };
 
-      collector.on("end", () => {
-        // Quando o coletor parar de coletar (por tempo ou conclusão)
-        endWhitelist(channel, correctAnswers);
-      });
+        collector.on("collect", (m) => {
+          if (m.author.bot) return;
 
-      // Faz a primeira pergunta
-      askQuestion();
+          const userAnswer = parseInt(m.content.trim(), 10);
 
-      // Função para finalizar a whitelist
-      const endWhitelist = (channel, correctAnswers) => {
-        if (correctAnswers >= margemdeacertos) {
-          // Usuário aprovado
-          const embedAprovado = new MessageEmbed()
-            .setTitle("Whitelist Aprovada!")
+          const answerIncorrect = new MessageEmbed()
             .setDescription(
-              `Parabéns! Você foi aprovado com ${correctAnswers} de ${totalQuestions} acertos!`
+              `<a:Incorreto:1214051678089777212>**| Resposta Incorreta!**`
             )
-            .setColor("#2b961f")
-            .setFooter("Dragon - Avisos");
+            .setColor("RED")
+            .setFooter({
+              text: "DeGabrielDEV Store™",
+              iconURL: message.author.displayAvatarURL(),
+            })
+            .setTimestamp();
 
-          channel.send({ embeds: [embedAprovado] });
-          message.member.roles.add(whitelistcargo).catch(console.error); // Adiciona cargo ao usuário
-        } else {
-          // Usuário reprovado
-          const embedReprovado = new MessageEmbed()
-            .setTitle("Whitelist Reprovada!")
+          const answerCorrect = new MessageEmbed()
             .setDescription(
-              `Infelizmente, você reprovou com ${correctAnswers} de ${totalQuestions} acertos. Mas você pode refazer a whitelist!`
+              `<a:Correto:1214051675166478377>**| Resposta Correta!**`
             )
-            .setColor("#ff0000")
-            .setFooter("Dragon - Avisos");
+            .setColor("GREEN")
+            .setFooter({
+              text: "DeGabrielDEV Store™",
+              iconURL: message.author.displayAvatarURL(),
+            })
+            .setTimestamp();
 
-          channel.send({ embeds: [embedReprovado] });
-          message.member.roles.add(nonwhitelistcargo).catch(console.error); // Adiciona cargo de não-whitelist ao usuário
-        }
-        setTimeout(() => {
-          channel.delete().catch(console.error); // Deleta o canal após um tempo
-        }, 10000);
-      };
-    })
-    .catch(console.error);
+          const answerInvalid = new MessageEmbed()
+            .setDescription(
+              `<a:Sirene:1214051670343028776>**| Por Favor, envie uma resposta válida, utilizando somente o número da alternativa que acha correta.**`
+            )
+            .setColor("BLUE")
+            .setFooter({
+              text: "DeGabrielDEV Store™",
+              iconURL: message.author.displayAvatarURL(),
+            })
+            .setTimestamp();
+
+          if (!isNaN(userAnswer)) {
+            userAnswers.push(
+              `**Pergunta ${currentQuestion + 1}:** ${m.content} `
+            );
+            if (userAnswer === questions[currentQuestion].answer) {
+              correctAnswers++;
+              channel
+                .send({ content: `${message.author}`, embeds: [answerCorrect] })
+                .then((msg) => {
+                  try {
+                    setTimeout(() => msg.delete().catch(console.error), 2000);
+                  } catch (err) {
+                    console.error(
+                      "Erro ao tentar deletar mensagem correta:",
+                      err
+                    );
+                  }
+                });
+            } else {
+              channel
+                .send({
+                  content: `${message.author}`,
+                  embeds: [answerIncorrect],
+                })
+                .then((msg) => {
+                  try {
+                    setTimeout(() => msg.delete().catch(console.error), 2000);
+                  } catch (err) {
+                    console.error(
+                      "Erro ao tentar deletar mensagem incorreta:",
+                      err
+                    );
+                  }
+                });
+            }
+            currentQuestion++;
+            askQuestion();
+          } else {
+            channel
+              .send({ content: `${message.author}`, embeds: [answerInvalid] })
+              .then((msg) => {
+                try {
+                  setTimeout(() => msg.delete().catch(console.error), 2000);
+                } catch (err) {
+                  console.error(
+                    "Erro ao tentar deletar mensagem inválida:",
+                    err
+                  );
+                }
+              });
+          }
+        });
+
+        collector.on("end", () => {
+          if (!answered) {
+            answered = true;
+            endWhitelist(channel, correctAnswers);
+          }
+        });
+
+        askQuestion();
+
+        const endWhitelist = (channel, correctAnswers) => {
+          if (answered) return;
+          answered = true;
+
+          collector.stop();
+
+          const sendToChannel = (channelId, content) => {
+            const resultChannel = client.channels.cache.get(channelId);
+            if (resultChannel) {
+              resultChannel.send(content).catch(console.error);
+            } else {
+              console.error(`Canal desconhecido ou inacessível: ${channelId}`);
+            }
+          };
+
+          if (userAnswers.length > 0) {
+            sendToChannel(resultadowlstaff, {
+              embeds: [
+                new MessageEmbed()
+                  .setTitle(`Resultado da Whitelist de ${message.author.tag}`)
+                  .setDescription(userAnswers.join("\n"))
+                  .setColor("#2b961f")
+                  .setFooter({
+                    text: "DeGabrielDEV ™ - Avisos",
+                    iconURL: message.author.displayAvatarURL(),
+                  }).setTimestamp,
+              ],
+            });
+          } else {
+            console.error("Nenhuma resposta foi coletada para a whitelist.");
+          }
+
+          const percentageCorrect = (correctAnswers / totalQuestions) * 100;
+
+          if (percentageCorrect >= 80) {
+            const embedAprovado = new MessageEmbed()
+              .setTitle(
+                "<a:Correto:1214051675166478377>** Whitelist Aprovada **"
+              )
+              .setDescription(
+                `**Usuário:** ${message.author}\n` + // Nome do usuário
+                  `**Personagem:** @nomeDoPersonagem\n` + // Nome do personagem substitua "nomeDoPersonagem" pelo nome apropriado
+                  `**Resultado:** ${percentageCorrect.toFixed(2)}%\n` + // Resultado com a porcentagem
+                  `**Pontuação:** ${correctAnswers} de ${totalQuestions} acertos` // Pontuação total
+              )
+              .setThumbnail(message.guild.iconURL())
+              .setColor("GREEN")
+              .setFooter({
+                text: "DeGabrielDEV ™ - Avisos",
+                iconURL: message.author.displayAvatarURL(),
+              })
+              .setTimestamp();
+
+            sendToChannel(resultadowlacertos, { embeds: [embedAprovado] });
+            message.member.roles.add(whitelistcargo).catch(console.error);
+          } else {
+            const embedReprovado = new MessageEmbed()
+              .setTitle(
+                "<a:Incorreto:1214051678089777212>** Whitelist Reprovada **"
+              )
+              .setDescription(
+                `Infelizmente, ${
+                  message.author
+                } você não atingiu a pontuação mínima. Você acertou ${correctAnswers} de ${totalQuestions} (${percentageCorrect.toFixed(
+                  2
+                )}%).`
+              )
+              .setThumbnail(message.guild.iconURL())
+              .setColor("RED")
+              .setFooter({
+                text: "DeGabrielDEV ™ - Avisos",
+                iconURL: message.author.displayAvatarURL(),
+              })
+              .setTimestamp();
+
+            sendToChannel(resultadowl_errados, { embeds: [embedReprovado] });
+            message.member.roles.add(nonwhitelistcargo).catch(console.error);
+          }
+
+          setTimeout(() => channel.delete().catch(console.error), 5000);
+        };
+      })
+      .catch((err) => {
+        console.error("Erro ao criar o canal:", err);
+      });
+  },
 };
