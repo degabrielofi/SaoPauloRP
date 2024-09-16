@@ -108,7 +108,7 @@ module.exports = {
         let totalQuestions = questions.length;
         let userAnswers = [];
         let answered = false;
-        let characterName = ""; // Variável para armazenar o nome do personagem
+        let characterName = "";
 
         const askQuestion = () => {
           if (currentQuestion < totalQuestions) {
@@ -128,7 +128,6 @@ module.exports = {
           if (m.author.bot) return;
 
           if (currentQuestion === 0) {
-            // Primeiro pergunta é o nome do personagem
             characterName = m.content.trim();
             userAnswers.push(`**Nome do Personagem:** ${characterName}`);
             currentQuestion++;
