@@ -31,7 +31,7 @@ Se você tiver problemas com qualquer um deles, saiba mais sobre o ambiente PATH
 [Mac/Linux](https://stackoverflow.com/questions/24306398/how-to-add-mongo-commands-to-path-on-mac-osx/24322978#24322978).
 
 <div align="center">
-<img src="https://i.imgur.com/P4me3Tn.png"/>
+<img src="https://i.imgur.com/5nDOIb7.png"/>
 </div>
 
 # :clipboard: Sobre o Projeto
