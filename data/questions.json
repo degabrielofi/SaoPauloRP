@@ -5,22 +5,17 @@
     "answer": ""
   },
   {
+    "question": "Qual o ID apresentado no seu jogo?",
+    "options": [],
+    "answer": ""
+  },
+  {
     "question": "Roleplay significa...?",
     "options": [
       "Mata-Mata",
       "Role com os Amigos",
       "Simular a vida real",
       "Simular a Fantasia"
-    ],
-    "answer": 3
-  },
-  {
-    "question": "O que é RDM?",
-    "options": [
-      "RDM é usada para quem abusou de bug.",
-      "RDM é atropelar alguém sem motivos.",
-      "RDM é matar alguém sem motivos.",
-      "RDM é sacar uma arma e ameaçar alguém."
     ],
     "answer": 3
   },
@@ -32,6 +27,81 @@
       "É você quebrar as regras do servidor.",
       "É você fazer rp de bandido."
     ],
+    "answer": 3
+  },
+  {
+    "question": "O que é RDM?",
+    "options": [
+      "RDM é usada para quem abusou de bug.",
+      "RDM é matar alguém sem motivos.",
+      "RDM é atropelar alguém sem motivos.",
+      "RDM é sacar uma arma e ameaçar alguém."
+    ],
+    "answer": 2
+  },
+  {
+    "question": "O que é AMOR A VIDA?",
+    "options": [
+      "É valorizar a vida como ela fosse única.",
+      "É ter amor próprio.",
+      "Reagir a um assalto.",
+      "É pular de uma ponte para evitar não ser pego."
+    ],
+    "answer": 1
+  },
+  {
+    "question": "O que é Combat Logging?",
+    "options": [
+      "É entrar em combate na ação.",
+      "É tentar fugir ao ser abordado.",
+      "é chamar alguém para lutar.",
+      "É deslogar do servidor para fugir de abordagem, prisão, roubo."
+    ],
+    "answer": 4
+  },
+  {
+    "question": "O que é PowerGaming?",
+    "options": [
+      "É você fazer um RP forçado com os players.",
+      "é abusar da mecânica do jogo.",
+      "É utilizar informações de fora do jogo.",
+      "É você ter super forças no jogo."
+    ],
+    "answer": 3
+  },
+  {
+    "question": "O que é MetaGaming?",
+    "options": [
+      "Aproveitar de informações externas e levar pro jogo.",
+      "É você jogar usando o Discord.",
+      "é você fazer RP baseado em metas de missões.",
+      "É você pedir alguém em Casamento."
+    ],
+    "answer": 1
+  },
+  {
+    "question": "O que é VDM?",
+    "options": [
+      "É matar alguém sem motivo.",
+      "É usar um veiculo para matar alguém.",
+      "É  ato de abusar das mecânicas do jogo.",
+      "VDM é subir uma montar com carro de drift."
+    ],
+    "answer": 2
+  },
+  {
+    "question": "Quais são as Safe-Zones?",
+    "options": [
+      "Aeroporto, Garagem, Áreas de Farm Legal.",
+      "Delegacia, Hospital, Concessionária, Áreas de Farm Legal.",
+      "Praça, Áreas de Farm Legal, Hospital, Delegacia.",
+      "Praça, Delegacia, Hospital, Concessionária."
+    ],
+    "answer": 4
+  },
+  {
+    "question": "Ao entrar no servidor você concorda com todas as regras impostas?",
+    "options": ["Discordo.", "Que regras?", "Concordo.", "Nulo."],
     "answer": 3
   }
 ]
