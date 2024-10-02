@@ -52,15 +52,15 @@ Para que o bot funcione corretamente, você precisa configurar o arquivo `config
 
   "channelWl": "ID_DO_CANAL_WHITELIST", // Canal onde os jogadores usam o comando !whitelist.
 
-  "idservidor": "ID_DO_SERVIDOR", // ID do servidor onde o bot está rodando.
-  "idcategoriawl": "ID_CATEGORIA_WHITELIST", // Categoria onde serão criados os canais para whitelist.
+  "serverId": "ID_DO_SERVIDOR", // ID do servidor onde o bot está rodando.
+  "wlCategoryId": "ID_CATEGORIA_WHITELIST", // Categoria onde serão criados os canais para whitelist.
 
-  "resultadowlstaff": "ID_CANAL_RESULTADO_STAFF", // Canal onde os resultados serão enviados para a equipe de staff.
-  "resultadowlacertos": "ID_CANAL_ACERTOS", // Canal onde os aprovados na whitelist serão mostrados.
-  "resultadowl_errados": "ID_CANAL_ERROS", // Canal onde os reprovados na whitelist serão exibidos.
+  "wlStaffResult": "ID_CANAL_RESULTADO_STAFF", // Canal onde os resultados serão enviados para a equipe de staff.
+  "wlCorrectResults": "ID_CANAL_ACERTOS", // Canal onde os aprovados na whitelist serão mostrados.
+  "wlIncorrectResults": "ID_CANAL_ERROS", // Canal onde os reprovados na whitelist serão exibidos.
 
-  "whitelistcargo": "ID_CARGO_WHITELIST", // Cargo atribuído aos aprovados.
-  "nonwhitelistcargo": "ID_CARGO_NON_WHITELIST" // Cargo atribuído aos reprovados.
+  "whitelistRole": "ID_CARGO_WHITELIST", // Cargo atribuído aos aprovados.
+  "nonWhitelistRole": "ID_CARGO_NON_WHITELIST" // Cargo atribuído aos reprovados.
 }
 ```
 

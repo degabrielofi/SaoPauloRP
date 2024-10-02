@@ -1,14 +1,14 @@
-const { MessageEmbed } = require("discord.js");
+const { MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const {
   channelWl,
-  idcategoriawl,
-  resultadowlstaff,
-  resultadowlacertos,
-  resultadowl_errados,
-  whitelistcargo,
-  nonwhitelistcargo,
+  wlCategoryId,
+  wlStaffResult,
+  wlCorrectResults,
+  wlIncorrectResults,
+  whitelistRole,
+  nonWhitelistRole,
 } = require("../config.json");
 
 const questions = JSON.parse(
@@ -27,7 +27,7 @@ module.exports = {
             `\\📝 **Utilize este Canal**: ${channelWl}`
         )
         .setColor("#ff0000")
-        .setFooter({ text: "Leia com atenção!" });
+        .setFooter({ text: "\\🚩 Leia com atenção!" });
       return message.channel.send({ embeds: [embed] });
     }
 
@@ -50,10 +50,7 @@ module.exports = {
         })
         .setTimestamp();
       return message.channel
-        .send({
-          content: `${message.author}`,
-          embeds: [existChannel],
-        })
+        .send({ content: `${message.author}`, embeds: [existChannel] })
         .then((msg) => {
           message.delete().catch(console.error);
           setTimeout(() => msg.delete().catch(console.error), 3000);
@@ -64,7 +61,7 @@ module.exports = {
     message.guild.channels
       .create(`whitelist-${message.author.id}`, {
         type: "GUILD_TEXT",
-        parent: idcategoriawl,
+        parent: wlCategoryId,
         permissionOverwrites: [
           {
             id: message.guild.id,
@@ -99,122 +96,129 @@ module.exports = {
           setTimeout(() => msg.delete().catch(console.error), 5000);
         });
 
-        const collector = channel.createMessageCollector({
-          time: 20000,
-        });
-
         let currentQuestion = 0;
         let correctAnswers = 0;
         let totalQuestions = questions.length;
         let userAnswers = [];
-        let answered = false;
         let characterName = "";
 
-        const askQuestion = () => {
+        const askQuestion = async () => {
           if (currentQuestion < totalQuestions) {
             let questionObj = questions[currentQuestion];
             let questionText = `**${currentQuestion + 1}. ${
               questionObj.question
-            }**\n\n${questionObj.options
-              .map((opt, index) => `${index + 1}️⃣ ${opt}`)
-              .join("\n")}`;
-            channel.send(questionText);
+            }**`;
+
+            if (currentQuestion < 2) {
+              await channel.send(questionText);
+            } else {
+              const buttons = questionObj.options.map((_, index) => {
+                return new MessageButton()
+                  .setCustomId(`answer_${index + 1}`)
+                  .setLabel(`${index + 1}`)
+                  .setStyle("PRIMARY");
+              });
+
+              const row = new MessageActionRow().addComponents(buttons);
+
+              questionText += "\n";
+              questionObj.options.forEach((option, index) => {
+                questionText += `${index + 1}. ${option}\n`; // Exibe as opções de resposta no texto
+              });
+
+              await channel.send({ content: questionText, components: [row] });
+            }
+
+            currentQuestion++;
           } else {
             endWhitelist(channel, correctAnswers);
           }
         };
 
-        collector.on("collect", (m) => {
+        // Iniciar fazendo a primeira pergunta
+        await askQuestion();
+
+        const buttonCollector = channel.createMessageComponentCollector({
+          componentType: "BUTTON",
+          time: 1200000, // Tempo que a Whitelist permanece aberta
+        });
+
+        const textCollector = channel.createMessageCollector({
+          time: 20000,
+        });
+
+        buttonCollector.on("collect", async (interaction) => {
+          if (interaction.user.id !== message.author.id) return;
+
+          const selectedAnswer = interaction.customId.split("_")[1];
+
+          const answerIncorrect = new MessageEmbed()
+            .setDescription(
+              `<a:Incorreto:1214051678089777212>**| Resposta Incorreta!**`
+            )
+            .setColor("RED")
+            .setFooter({
+              text: "DeGabrielDEV Store™",
+              iconURL: message.author.displayAvatarURL(),
+            })
+            .setTimestamp();
+
+          const answerCorrect = new MessageEmbed()
+            .setDescription(
+              `<a:Correto:1214051675166478377>**| Resposta Correta!**`
+            )
+            .setColor("GREEN")
+            .setFooter({
+              text: "DeGabrielDEV Store™",
+              iconURL: message.author.displayAvatarURL(),
+            })
+            .setTimestamp();
+
+          // Verifica se a resposta é correta
+          if (
+            parseInt(selectedAnswer, 10) ===
+            questions[currentQuestion - 1].answer
+          ) {
+            correctAnswers++;
+            await interaction.reply({
+              embeds: [answerCorrect],
+              ephemeral: true,
+            });
+          } else {
+            await interaction.reply({
+              embeds: [answerIncorrect],
+              ephemeral: true,
+            });
+          }
+
+          await askQuestion();
+        });
+
+        textCollector.on("collect", async (m) => {
           if (m.author.bot) return;
 
-          if (currentQuestion === 0) {
+          if (currentQuestion === 1) {
             characterName = m.content.trim();
-            userAnswers.push(`**Nome do Personagem:** ${characterName}`);
-            currentQuestion++;
-            askQuestion();
-          } else {
-            const userAnswer = parseInt(m.content.trim(), 10);
-            const answerIncorrect = new MessageEmbed()
-              .setDescription(
-                `<a:Incorreto:1214051678089777212>**| Resposta Incorreta!**`
-              )
-              .setColor("RED")
-              .setFooter({
-                text: "DeGabrielDEV Store™",
-                iconURL: message.author.displayAvatarURL(),
-              })
-              .setTimestamp();
-
-            const answerCorrect = new MessageEmbed()
-              .setDescription(
-                `<a:Correto:1214051675166478377>**| Resposta Correta!**`
-              )
-              .setColor("GREEN")
-              .setFooter({
-                text: "DeGabrielDEV Store™",
-                iconURL: message.author.displayAvatarURL(),
-              })
-              .setTimestamp();
-
-            const answerInvalid = new MessageEmbed()
-              .setDescription(
-                `<a:Sirene:1214051670343028776>**| Por Favor, envie uma resposta válida, utilizando somente o número da alternativa que acha correta.**`
-              )
-              .setColor("BLUE")
-              .setFooter({
-                text: "DeGabrielDEV Store™",
-                iconURL: message.author.displayAvatarURL(),
-              })
-              .setTimestamp();
-
-            if (!isNaN(userAnswer)) {
-              userAnswers.push(`**Pergunta ${currentQuestion}:** ${m.content}`);
-              if (userAnswer === questions[currentQuestion - 1].answer) {
-                correctAnswers++;
-                channel
-                  .send({
-                    content: `${message.author}`,
-                    embeds: [answerCorrect],
-                  })
-                  .then((msg) =>
-                    setTimeout(() => msg.delete().catch(console.error), 2000)
-                  );
-              } else {
-                channel
-                  .send({
-                    content: `${message.author}`,
-                    embeds: [answerIncorrect],
-                  })
-                  .then((msg) =>
-                    setTimeout(() => msg.delete().catch(console.error), 2000)
-                  );
-              }
-              currentQuestion++;
-              askQuestion();
-            } else {
-              channel
-                .send({ content: `${message.author}`, embeds: [answerInvalid] })
-                .then((msg) =>
-                  setTimeout(() => msg.delete().catch(console.error), 2000)
-                );
-            }
+            await askQuestion();
+            correctAnswers++;
+          } else if (currentQuestion === 2) {
+            let userID = m.content.trim();
+            userAnswers.push(`\\🆔 **ID do Jogo:** ${userID}`);
+            await askQuestion();
+            correctAnswers++;
           }
         });
 
-        collector.on("end", () => {
-          if (!answered) {
-            answered = true;
+        buttonCollector.on("end", async (collected, reason) => {
+          if (reason === "time") {
+            await channel.send(
+              `<a:Incorreto:1214051678089777212>**O Tempo limite foi atingido!** \n \\📉 Finalizando a Whitelist...`
+            );
             endWhitelist(channel, correctAnswers);
           }
         });
 
-        askQuestion();
-
-        const endWhitelist = (channel, correctAnswers) => {
-          if (answered) return;
-          answered = true;
-
-          collector.stop();
+        const endWhitelist = async (channel, correctAnswers) => {
           const percentageCorrect = (correctAnswers / totalQuestions) * 100;
 
           const sendToChannel = (channelId, content) => {
@@ -224,32 +228,29 @@ module.exports = {
             }
           };
 
-          if (userAnswers.length > 0) {
-            let user = message.mentions.users.first() || message.author;
-            const resultStaff = new MessageEmbed()
-              .setTitle(`🎉 Resultado da Whitelist`)
-              .setThumbnail(message.guild.iconURL())
-              .setDescription(
-                `🪪 **Usuário:** ${user}\n` +
-                  `🆔 **ID:** ${user.tag}\n` +
-                  `**Nome do Personagem:** ${characterName}\n` +
-                  `**Pontuação:**\n ${userAnswers.join("\n")}\n` +
-                  `🎯 **Resultado:** ${percentageCorrect.toFixed(2)}%`
-              )
-              .setColor("BLUE")
-              .setFooter({
-                text: "DeGabrielDEV ™ - Avisos",
-                iconURL: message.author.displayAvatarURL(),
-              })
-              .setTimestamp();
+          let user = message.mentions.users.first() || message.author;
+          const resultStaff = new MessageEmbed()
+            .setTitle(`\\🎉 Resultado da Whitelist`)
+            .setThumbnail(message.guild.iconURL())
+            .setDescription(
+              `\\🕵️ **Nome do Personagem:** ${characterName}\n` +
+                `\\🪪 **Usuário:** ${user}\n` +
+                `\\🎯 **Resultado:** ${percentageCorrect.toFixed(2)}%`
+            )
+            .setColor("BLUE")
+            .setFooter({
+              text: "DeGabrielDEV ™ - Avisos",
+              iconURL: message.author.displayAvatarURL(),
+            })
+            .setTimestamp();
 
-            sendToChannel(resultadowlstaff, { embeds: [resultStaff] });
-          }
+          sendToChannel(wlStaffResult, { embeds: [resultStaff] });
 
+          let embedResult;
           if (percentageCorrect >= 80) {
-            const embedAprovado = new MessageEmbed()
+            embedResult = new MessageEmbed()
               .setTitle(
-                "<a:Correto:1214051675166478377>** Whitelist Aprovada **"
+                "<a:Correto:1214051675166478377>** Whitelist Aprovada! **"
               )
               .setDescription(
                 `**Usuário:** ${message.author}\n` +
@@ -265,10 +266,10 @@ module.exports = {
               })
               .setTimestamp();
 
-            sendToChannel(resultadowlacertos, { embeds: [embedAprovado] });
-            message.member.roles.add(whitelistcargo).catch(console.error);
+            await message.member.roles.add(whitelistRole);
+            await message.member.roles.remove(nonWhitelistRole);
           } else {
-            const embedReprovado = new MessageEmbed()
+            embedResult = new MessageEmbed()
               .setTitle(
                 "<a:Incorreto:1214051678089777212>** Whitelist Reprovada **"
               )
@@ -286,13 +287,16 @@ module.exports = {
               })
               .setTimestamp();
 
-            sendToChannel(resultadowl_errados, { embeds: [embedReprovado] });
-            message.member.roles.remove(nonwhitelistcargo).catch(console.error);
+            await message.member.roles.add(nonWhitelistRole);
           }
 
-          setTimeout(() => channel.delete(), 3000);
+          sendToChannel(
+            percentageCorrect >= 80 ? wlCorrectResults : wlIncorrectResults,
+            { embeds: [embedResult] }
+          );
+
+          await channel.delete();
         };
-      })
-      .catch(console.error);
+      });
   },
 };
